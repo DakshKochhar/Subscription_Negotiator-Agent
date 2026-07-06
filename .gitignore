@@ -1,0 +1,122 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+bin/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+
+# Frontend dependencies
+frontend/node_modules/
+
+# Backend environments & cache
+backend/.venv/
+backend/.uv/
+backend/__pycache__/
+
+# Frontend build output & logs
+frontend/dist/
+frontend/dist-ssr/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# App/Framework specific caches & data
+app/.adk/
+app/__pycache__/
+app/.venv/
+app/.uv/
+data/local_ledger.json
+
+# Testing caches
+.pytest_cache/
+.coverage
+htmlcov/
+
+
+# Project Specific & Media Deliverables
+*.mp4
+*.mov
+*.avi
+backend/inbox/
+inbox/
+
+
+# Node / Frontend Additional Meta Data
+.eslintcache
+.stylelintcache
+.next/
+.nuxt/
+.svelte-kit/
+
+# Alternative/Hidden Environment Formats
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Python Tooling and Lock Management
+.mcp/
+.ruff_cache/
+.mypy_cache/
+
+# Ignore the active localized virtual environment folders
+.venv/
+subscription_negotiation/.venv/
+
+# Ignore local initialization helper scripts
+init.ps1
+init.sh
+
+# Ignore alternative framework tracking files
+pyrefly.toml
+
+# Ignore temporary testing and debugging exploration scripts
+test_adk*.py
+test_gemini.py
+repro_debug.py
+
+# Ignore local IDE specific environment overrides 
+.vscode/
+subscription_negotiation/.vscode/
+
+# Ignore individual internal lock caches generated within your sub-environments
+.lock
+CACHEDIR.TAG
