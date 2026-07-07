@@ -207,6 +207,64 @@ async def health():
     return {"status": "ok", "service": "Subscription Negotiator API"}
 
 
+@app.get("/api/key-status")
+async def key_status():
+    """
+    Returns which API keys are configured (present and non-placeholder/dummy).
+    Does NOT expose the actual key values.
+    """
+    import os
+    import re
+
+    def _is_google_api_key_set() -> bool:
+        val = os.environ.get("GOOGLE_API_KEY", "").strip().strip('"')
+        if not val:
+            return False
+        # Real Gemini/Google AI keys start with "AIzaSy" and are ~39 chars, no spaces/placeholders
+        if "DUMMY" in val.upper() or "YOUR_" in val.upper() or "HERE" in val.upper():
+            return False
+        return bool(re.match(r'^AIzaSy[A-Za-z0-9_\-]{30,}$', val))
+
+    def _is_workspace_key_set() -> bool:
+        val = os.environ.get("WORKSPACE_JSON_KEY", "").strip().strip('"')
+        if not val:
+            return False
+        if "DUMMY" in val.upper() or "YOUR_" in val.upper() or "HERE" in val.upper():
+            return False
+        # Should be a JSON object (OAuth client creds payload)
+        return val.startswith("{") and len(val) > 50
+
+    def _is_plaid_client_id_set() -> bool:
+        val = os.environ.get("PLAID_CLIENT_ID", "").strip().strip('"')
+        if not val:
+            return False
+        dummy_values = {"sandbox_client_id", "your_plaid_client_id_here"}
+        if val.lower() in dummy_values:
+            return False
+        if "DUMMY" in val.upper() or "YOUR_" in val.upper() or "HERE" in val.upper():
+            return False
+        # Real Plaid client IDs are 24-char hex strings
+        return len(val) >= 20
+
+    def _is_plaid_secret_set() -> bool:
+        val = os.environ.get("PLAID_SECRET", "").strip().strip('"')
+        if not val:
+            return False
+        dummy_values = {"sandbox_secret", "your_plaid_secret_here"}
+        if val.lower() in dummy_values:
+            return False
+        if "DUMMY" in val.upper() or "YOUR_" in val.upper() or "HERE" in val.upper():
+            return False
+        return len(val) >= 20
+
+    return {
+        "GOOGLE_API_KEY":     _is_google_api_key_set(),
+        "WORKSPACE_JSON_KEY": _is_workspace_key_set(),
+        "PLAID_CLIENT_ID":    _is_plaid_client_id_set(),
+        "PLAID_SECRET":       _is_plaid_secret_set(),
+    }
+
+
 @app.post("/api/negotiate", response_model=NegotiateResponse)
 async def run_negotiation(request: NegotiateRequest):
     """

@@ -8,8 +8,7 @@ Unmanaged subscription creep and consumer negotiation fatigue are widespread fin
 
 ## 2. 5-Minute Demonstration Video
 
-[![5-Minute Demonstration Video](https://img.youtube.com/vi/YOUR_VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
-*(Placeholder for public YouTube link. Replace `YOUR_VIDEO_ID` with the actual video ID.)*
+[![5-Minute Demonstration Video](https://img.youtube.com/vi/t8MKnJs3SlQ/0.jpg)](https://www.youtube.com/watch?v=t8MKnJs3SlQ)
 
 ## 3. System Architecture
 

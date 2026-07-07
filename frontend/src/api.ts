@@ -59,3 +59,20 @@ export async function checkHealth(): Promise<boolean> {
     return false
   }
 }
+
+export interface KeyStatus {
+  GOOGLE_API_KEY: boolean
+  WORKSPACE_JSON_KEY: boolean
+  PLAID_CLIENT_ID: boolean
+  PLAID_SECRET: boolean
+}
+
+export async function checkKeyStatus(): Promise<KeyStatus | null> {
+  try {
+    const res = await fetch('/api/key-status')
+    if (!res.ok) return null
+    return res.json()
+  } catch {
+    return null
+  }
+}

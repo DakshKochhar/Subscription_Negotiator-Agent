@@ -6,8 +6,8 @@ import {
   useTransform,
   animate as fmAnimate,
 } from 'framer-motion'
-import type { NegotiateResponse } from './api'
-import { runNegotiation } from './api'
+import type { NegotiateResponse, KeyStatus } from './api'
+import { runNegotiation, checkKeyStatus } from './api'
 import './App.css'
 
 // ── Animation Variants ─────────────────────────────────────────────────────
@@ -390,6 +390,66 @@ function SubscriptionCard({ sub, policy, strategy, index }: {
   )
 }
 
+// ── Key Status Bar ──────────────────────────────────────────────────────────
+
+const KEY_LABELS: Record<string, string> = {
+  GOOGLE_API_KEY: 'Gemini API',
+  WORKSPACE_JSON_KEY: 'Workspace OAuth',
+  PLAID_CLIENT_ID: 'Plaid Client',
+  PLAID_SECRET: 'Plaid Secret',
+}
+
+function KeyStatusBar({ status }: { status: KeyStatus | null | 'loading' | 'offline' }) {
+  if (status === 'loading') {
+    return (
+      <div className="key-status-bar">
+        <span className="key-status-label">API Keys</span>
+        {[...Array(4)].map((_, i) => (
+          <span key={i} className="key-pill missing" style={{ opacity: 0.4 + i * 0.1 }}>
+            <span className="key-pill-dot" />
+            ···
+          </span>
+        ))}
+      </div>
+    )
+  }
+
+  if (status === 'offline' || status === null) {
+    return (
+      <div className="key-status-bar">
+        <span className="key-status-offline">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          Backend offline — key status unavailable
+        </span>
+      </div>
+    )
+  }
+
+  return (
+    <motion.div
+      className="key-status-bar"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.5, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <span className="key-status-label">API Keys</span>
+      {(Object.entries(status) as [string, boolean][]).map(([key, isSet]) => (
+        <motion.span
+          key={key}
+          className={`key-pill ${isSet ? 'set' : 'missing'}`}
+          title={isSet ? `${KEY_LABELS[key] ?? key}: configured` : `${KEY_LABELS[key] ?? key}: not set — check your .env`}
+          whileHover={{ scale: 1.07 }}
+        >
+          <span className="key-pill-dot" />
+          {KEY_LABELS[key] ?? key}
+        </motion.span>
+      ))}
+    </motion.div>
+  )
+}
+
 // ── Main App ──────────────────────────────────────────────────────────────
 
 type AppState = 'idle' | 'loading' | 'done' | 'error'
@@ -405,6 +465,18 @@ export default function App() {
   const [result, setResult] = useState<NegotiateResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [activeStep, setActiveStep] = useState(-1)
+  const [keyStatus, setKeyStatus] = useState<KeyStatus | null | 'loading' | 'offline'>('loading')
+
+  useEffect(() => {
+    checkKeyStatus().then(s => setKeyStatus(s === null ? 'offline' : s))
+  }, [])
+
+  // true only when we have a real status response AND the key is explicitly absent
+  const geminiKeyMissing =
+    keyStatus !== 'loading' &&
+    keyStatus !== 'offline' &&
+    keyStatus !== null &&
+    keyStatus.GOOGLE_API_KEY === false
 
   const handleAnalyze = async (useMock: boolean) => {
     setAppState('loading')
@@ -500,34 +572,66 @@ export default function App() {
           <AnimatePresence>
             {appState === 'idle' && (
               <motion.div
-                className="hero-actions"
+                className="hero-actions-wrap"
                 variants={fadeUp}
                 initial="hidden"
                 animate="visible"
                 exit={{ opacity: 0, y: -12, transition: { duration: 0.25 } }}
                 custom={0.3}
               >
-                <motion.button
-                  className="btn btn-primary"
-                  onClick={() => handleAnalyze(false)}
-                  whileHover={{ scale: 1.04, y: -2 }}
-                  whileTap={{ scale: 0.97 }}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
-                  Analyze Live (Gemini AI)
-                </motion.button>
-                <motion.button
-                  className="btn btn-secondary"
-                  onClick={() => handleAnalyze(true)}
-                  whileHover={{ scale: 1.04, y: -2 }}
-                  whileTap={{ scale: 0.97 }}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" /><polyline points="13 2 13 9 20 9" /></svg>
-                  Demo Mode (Instant)
-                </motion.button>
+                <div className="hero-actions">
+                  {/* ── Analyze Live button (disabled if no Gemini key) ── */}
+                  <div className="live-btn-wrap">
+                    <motion.button
+                      id="btn-analyze-live"
+                      className={`btn btn-primary${geminiKeyMissing ? ' btn-disabled' : ''}`}
+                      onClick={() => !geminiKeyMissing && handleAnalyze(false)}
+                      whileHover={geminiKeyMissing ? {} : { scale: 1.04, y: -2 }}
+                      whileTap={geminiKeyMissing ? {} : { scale: 0.97 }}
+                      aria-disabled={geminiKeyMissing}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+                      Analyze Live (Gemini AI)
+                    </motion.button>
+
+                    {/* Key-missing inline warning */}
+                    <AnimatePresence>
+                      {geminiKeyMissing && (
+                        <motion.div
+                          className="missing-key-notice"
+                          initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -4, scale: 0.97 }}
+                          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                          </svg>
+                          <span>
+                            Add <code>GOOGLE_API_KEY</code> to your{' '}
+                            <strong>.env</strong> file to use this feature
+                          </span>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  <motion.button
+                    id="btn-demo-mode"
+                    className="btn btn-secondary"
+                    onClick={() => handleAnalyze(true)}
+                    whileHover={{ scale: 1.04, y: -2 }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" /><polyline points="13 2 13 9 20 9" /></svg>
+                    Demo Mode (Instant)
+                  </motion.button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
+          <KeyStatusBar status={keyStatus} />
         </div>
       </header>
 
