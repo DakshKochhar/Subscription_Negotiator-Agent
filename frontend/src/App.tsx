@@ -412,8 +412,8 @@ export default function App() {
     setError(null)
     setActiveStep(0)
 
-    const minDelay = useMock ? 3000 : 5000
-    const stepInterval = useMock ? 900 : 12000
+    const minDelay = useMock ? 7000 : 5000
+    const stepInterval = useMock ? 2000 : 12000
 
     const stepTimer = setInterval(() => {
       setActiveStep(prev => {
