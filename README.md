@@ -6,7 +6,7 @@ Unmanaged subscription creep and consumer negotiation fatigue are widespread fin
 
 **Subscription Negotiator** is an automated, human-in-the-loop solution designed to tackle this problem. Our platform acts as a smart financial advocate, automatically identifying subscription expenses, analyzing current cancellation and retention policies, and generating high-leverage negotiation scripts. By streamlining the downscaling process, we empower users to effortlessly reduce their monthly overhead and reclaim control over their digital subscriptions.
 
-## 2. 5-Minute Demonstration Video
+## 2. Demonstration Video
 
 [![5-Minute Demonstration Video](https://img.youtube.com/vi/t8MKnJs3SlQ/0.jpg)](https://www.youtube.com/watch?v=t8MKnJs3SlQ)
 
